@@ -1,0 +1,41 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.api.appName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Values.api.appName }}
+spec:
+  replicas: {{ .Values.api.replicaCount }}
+  revisionHistoryLimit: {{ .Values.api.revisionHistoryLimit }}
+  selector:
+    matchLabels:
+      app: {{ .Values.api.appName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.api.appName }}
+    spec:
+      containers:
+      - name: {{ .Values.api.appName }}-app
+        image: {{ .Values.api.image }}
+        ports:
+        - name: web #web interface
+          containerPort: {{ .Values.api.webPort }}
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: 200m
+            memory: 2Gi
+          limits:
+            cpu: 300m
+            memory: 2.5Gi
+        env:
+          - name: BEARER_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: database-credentials
+                key: test.test
+      imagePullSecrets:
+        - name: {{ .Values.api.imagePullSecret}} 
