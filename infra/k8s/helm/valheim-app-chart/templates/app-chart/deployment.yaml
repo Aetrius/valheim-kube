@@ -1,0 +1,71 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.valheim.appName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Values.valheim.appName }}
+spec:
+  replicas: {{ .Values.valheim.replicaCount }}
+  revisionHistoryLimit: {{ .Values.valheim.revisionHistoryLimit }}
+  selector:
+    matchLabels:
+      app: {{ .Values.valheim.appName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.valheim.appName }}
+    spec:
+      containers:
+      - name: {{ .Values.valheim.appName }}
+        image: {{ .Values.valheim.image }}
+        ports:
+        - name: game #game interface
+          containerPort: {{ .Values.valheim.gamePort }}
+        - name: query #query interface
+          containerPort: {{ .Values.valheim.queryPort }}
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: 2
+            memory: 3Gi
+          limits:
+            cpu: 3
+            memory: 4Gi
+        env:
+          - name: SERVER_NAME
+            value: {{ .Values.valheim.serverName }}
+          - name: WORLD_NAME
+            value: {{ .Values.valheim.worldName }}
+          - name: SERVER_PASS
+            value: {{ .Values.valheim.serverPassword }}
+          - name: SERVER_PORT
+            value: {{ .Values.valheim.gamePort }} 
+          - name: SERVER_PUBLIC
+            value: {{ .Values.valheim.serverPublic }} 
+          - name: UPDATE_IF_IDLE
+            value: {{ .Values.valheim.updateIfIdle }} 
+          - name: DISCORD_WEBHOOK
+            value: {{ .Values.valheim.discordWebhook }} 
+          - name: VALHEIM_LOG_FILTER_CONTAINS_Spawned
+            value: {{ .Values.valheim.filterSearch }}
+          - name: ON_VALHEIM_LOG_FILTER_CONTAINS_Spawned
+            value: {{ .Values.valheim.filterSearchContains }}
+        volumeMounts:
+        - mountPath: /config
+          name: viking_files
+        - mountPath: /data
+          name: viking_files
+      volumes:
+      - name: viking_files
+        hostPath:
+          path: /data/valheim
+          type: DirectoryOrCreate
+          # - name: BEARER_TOKEN
+          #   valueFrom:
+          #     secretKeyRef:
+          #       name: database-credentials
+          #       key: test.test
+      # imagePullSecrets:
+      #   - name: {{ .Values.valheim.imagePullSecret}} 
